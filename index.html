@@ -162,12 +162,27 @@
       align-items: start;
     }
 
+    /* .hero-main {
+      padding: 1.8rem 2rem 1.5rem;
+    } */
     .hero-main {
       padding: 1.8rem 2rem 1.5rem;
+      border: 1px solid var(--border) !important;
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: none;
     }
 
-    /* .hero-main, */
-    .hero-side,
+    /* .hero-side, */
+    .hero-side {
+      padding: 1.1rem 0 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+    }
     .card,
     .post,
     .footer-box {
@@ -209,7 +224,7 @@
     }
 
     h1 {
-      margin: 0 0 0.85rem;
+      margin: 0 0 0.75rem;
       font-size: clamp(1.35rem, 2.4vw, 2rem);
       line-height: 1.08;
       letter-spacing: -0.035em;
