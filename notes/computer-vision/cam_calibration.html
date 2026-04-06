@@ -264,12 +264,13 @@
         Example: if <code>f_x = f_y = 800</code>, <code>c_x = 320</code>, <code>c_y = 240</code>,
         and a point in camera coordinates is <code>(1, 2, 4)</code>, then
       </p>
-      <div class="math">$$
-        x_n = \frac{1}{4} = 0.25,   y_n = \fac{2}{4} = 0.5
-        <br>
-        u = 800(0.25) + 320 = 520
-        <br>
-        v = 800(0.5) + 240 = 640
+      <div class="math">
+        $$
+        \begin{aligned}
+        x_n &= \frac{1}{4} = 0.25,\quad y_n = \frac{2}{4} = 0.5 \\
+        u &= 800(0.25) + 320 = 520 \\
+        v &= 800(0.5) + 240 = 640
+        \end{aligned}
         $$
       </div>
       <p>
@@ -281,7 +282,7 @@
         Once you estimate a camera matrix <code>P</code>, the left 3x3 block contains the mixed effect of intrinsics and rotation.
         Call that block <code>M</code>:
       </p>
-      <div class="math">$$P = [M | p_4], \quad   with   M = K R$$</div>
+      <div class="math">$$P = [M | p_4], \quad   \text{with }   M = K R$$</div>
       <p>
         The problem is that <code>M</code> mixes two different structures:
       </p>
@@ -330,12 +331,13 @@
       <p>
         Suppose we start with vectors <code>a_1, a_2</code>. Gram-Schmidt does:
       </p>
-      <div class="math">$$
-        q_1 = a_1 / ||a_1||
-        <br>
-        u_2 = a_2 - (q_1^T a_2) q_1
-        <br>
-        q_2 = u_2 / ||u_2||
+      <div class="math">
+        $$
+        \begin{aligned}
+        q_1 &= \frac{a_1}{\|a_1\|} \\
+        u_2 &= a_2 - (q_1^\top a_2)\,q_1 \\
+        q_2 &= \frac{u_2}{\|u_2\|}
+        \end{aligned}
         $$
       </div>
       <p>
@@ -347,18 +349,20 @@
       <p>
         Let
       </p>
-      <div class="math">$$a_1 = [1, 1]^T, \quad   a_2 = [1, 0]^T$$</div>
+      <div class="math">$$a_1 = [1, 1]^\top, \quad   a_2 = [1, 0]^\top$$</div>
       <p>
         First,
       </p>
-      <div class="math">$$q_1 = (1 / \sqrt{2}) [1, 1]^T$$</div>
+      <div class="math">$$q_1 = (1 / \sqrt{2}) [1, 1]^\top$$</div>
       <p>
         Project <code>a_2</code> onto <code>q_1</code>:
       </p>
-      <div class="math">$$
-        q_1^T a_2 = \frac{1}{\sqrt{2}}
-        <br>
-        (q_1^T a_2) q_1 = [\frac{1}{2}, \frac{1}{2}]^T
+      <div class="math">
+        $$
+        \begin{aligned}
+        q_1^\top a_2 &= \frac{1}{\sqrt{2}} \\
+        (q_1^\top a_2) q_1 &= \Big[\frac{1}{2}, \frac{1}{2} \Big]^\top
+        \end{aligned}
         $$
       </div>
       <p>
