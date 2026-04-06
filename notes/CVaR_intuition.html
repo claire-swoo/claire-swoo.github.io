@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CVaR intuition for planning under uncertainty</title>
+  <link href="https://fonts.googleapis.com/css2?family=Alef:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f7f7f5;
+      --surface: #ffffff;
+      --text: #171717;
+      --muted: #666666;
+      --border: #dddddd;
+      --accent: #1f4fd1;
+      --max-width: 860px;
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Alef', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.8;
+    }
+
+    .container {
+      width: min(var(--max-width), calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 2rem 0 4rem;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .back {
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+
+    .article {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+    }
+
+    h1 {
+      margin: 0 0 0.5rem;
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+      line-height: 1.15;
+    }
+
+    .meta {
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    .summary-box {
+      background: #f8f8f8;
+      border: 1px solid #e7e7e7;
+      border-radius: 14px;
+      padding: 1rem 1.1rem;
+      margin: 1.2rem 0 1.8rem;
+    }
+
+    h2 {
+      margin-top: 2rem;
+      margin-bottom: 0.6rem;
+      font-size: 1.2rem;
+      line-height: 1.3;
+    }
+
+    p {
+      margin: 0.7rem 0;
+    }
+
+    ul {
+      padding-left: 1.2rem;
+    }
+
+    code {
+      background: #f1f1f1;
+      border: 1px solid #e2e2e2;
+      padding: 0.1rem 0.35rem;
+      border-radius: 6px;
+      font-size: 0.95em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="back">
+      <a href="../index.html">Home</a> / <a href="index.html">Notes</a>
+    </div>
+
+    <article class="article">
+      <h1>CVaR intuition for planning under uncertainty</h1>
+      <div class="meta">Apr 2026 · Risk-aware planning · Notes</div>
+
+      <div class="summary-box">
+        <strong>Core question.</strong><br>
+        Why is minimizing expected cost often not enough when rare but severe failures matter?
+      </div>
+
+      <h2>1. Intuition</h2>
+      <p>
+        Expected cost is an average. That is useful, but it can hide dangerous tails.
+        In planning problems, two policies may have similar average performance while one of them
+        occasionally causes very bad outcomes. If the application is safety-sensitive, those tail events
+        are not noise. They are part of the actual decision problem.
+      </p>
+
+      <h2>2. Why expectation alone can be misleading</h2>
+      <p>
+        A planner that optimizes only expected cost may prefer a route that is usually fast,
+        even if it sometimes passes through highly uncertain or high-consequence regions.
+        From an average-performance view that can look acceptable. From a safety view it may not.
+      </p>
+      <p>
+        This is exactly why tail-sensitive criteria matter. The problem is not only how often bad events occur,
+        but how severe they are when they do occur.
+      </p>
+
+      <h2>3. What CVaR is doing conceptually</h2>
+      <p>
+        Let the loss be a random variable <code>Z</code>. Value-at-Risk gives a threshold for the bad tail.
+        CVaR goes one step further: it measures the average loss within that tail.
+        So CVaR does not ask only, “where does the bad region begin?” It asks,
+        “once we are already in the bad region, how bad is it on average?”
+      </p>
+
+      <h2>4. Why this matters for planning and control</h2>
+      <p>
+        In robot navigation or sequential decision-making, uncertainty is often spatially structured.
+        Some regions may be partially observed, dynamically occupied, or semantically risky.
+        A risk-neutral planner may still cut through them because the expected reward looks good enough.
+        A CVaR-aware planner is more likely to avoid plans whose downside is disproportionately severe.
+      </p>
+
+      <h2>5. Connection to my current research direction</h2>
+      <p>
+        In our earlier discussion, the main concern was not generic uncertainty for its own sake,
+        but uncertainty that becomes operational risk: collision risk, unsafe human interaction,
+        or workflow disruption in a robotics setting. That makes CVaR more meaningful than a plain expectation objective.
+      </p>
+      <p>
+        This is especially relevant when local perception is incomplete and the system must still act in real time.
+        In that setting, a planner that explicitly cares about tail outcomes can better reflect the real cost of uncertainty.
+      </p>
+
+      <h2>6. Practical caution</h2>
+      <p>
+        CVaR is useful, but it is not magic. If the loss definition is weak, the planner will still optimize the wrong thing.
+        The hard part is often not the risk metric itself, but how the risk signal is defined:
+        obstacle proximity, uncertainty map intensity, predicted human interference, or some combination of these.
+      </p>
+
+      <h2>7. Open questions</h2>
+      <ul>
+        <li>What tail level should be used in practice for a given robotics task?</li>
+        <li>How should CVaR interact with MPC stage cost versus hard safety constraints?</li>
+        <li>What is the right operational loss signal when uncertainty also affects workflow efficiency?</li>
+      </ul>
+    </article>
+  </div>
+</body>
+</html>
