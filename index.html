@@ -159,21 +159,25 @@
       display: grid;
       grid-template-columns: 1.68fr 0.88fr;
       gap: 1.15rem;
-      align-items: start;
+      align-items: stretch;
     }
 
     /* .hero-main {
       padding: 1.8rem 2rem 1.5rem;
     } */
-    .hero-main {
+    /* .hero-main {
       padding: 1.8rem 2rem 1.5rem;
       border: 1px solid var(--border) !important;
       border-radius: var(--radius);
       background: var(--surface);
       box-shadow: none;
+    } */
+    .hero-main {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between; /* ← 아래까지 자연스럽게 채움 */
     }
 
-    /* .hero-side, */
     .hero-side {
       padding: 1.1rem 0 0;
       display: flex;
