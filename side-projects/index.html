@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Alef:wght@400;700&display=swap" rel="stylesheet">
+  <title>Side Projects</title>
+  <style>
+    :root {
+      --bg: #f7f7f5;
+      --surface: #ffffff;
+      --text: #171717;
+      --muted: #666666;
+      --border: #dde2ea;
+      --accent: #61becd;
+      --accent-2: #101E5C;
+      --radius: 16px;
+      --max-width: 900px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Alef', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: var(--max-width);
+      margin: 48px auto;
+      padding: 0 20px 40px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .back {
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+
+    .back a {
+      color: #2b57d9;
+    }
+
+    .back a:hover {
+      text-decoration: underline;
+    }
+
+    h1 {
+      margin: 0 0 0.4rem;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+    }
+
+    .intro {
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      font-size: 1rem;
+      max-width: 60ch;
+    }
+
+    .category {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      margin-bottom: 0.9rem;
+      overflow: hidden;
+    }
+
+    details {
+      border-radius: 14px;
+    }
+
+    summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 1rem 1.1rem;
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--accent-2);
+      text-decoration: underline;
+      text-underline-offset: 0.15em;
+    }
+
+    summary::-webkit-details-marker {
+      display: none;
+    }
+
+    summary::before {
+      content: "▸";
+      display: inline-block;
+      margin-right: 0.55rem;
+      color: var(--muted);
+      transform: rotate(0deg);
+      transition: transform 0.15s ease;
+      text-decoration: none;
+    }
+
+    details[open] summary::before {
+      transform: rotate(90deg);
+    }
+
+    .category-body {
+      padding: 0 1.1rem 1rem;
+      border-top: 1px solid #edf0f4;
+    }
+
+    .category-desc {
+      margin: 0.8rem 0 0.9rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .project-item {
+      padding: 0.75rem 0;
+      border-top: 1px solid #f0f2f6;
+    }
+
+    .project-item:first-of-type {
+      border-top: none;
+    }
+
+    .project-title {
+      color: var(--accent-2);
+      font-weight: 700;
+      font-size: 1rem;
+      display: inline-block;
+      margin-bottom: 0.12rem;
+    }
+
+    .project-title:hover {
+      text-decoration: underline;
+      text-underline-offset: 0.15em;
+    }
+
+    .project-desc {
+      color: var(--muted);
+      font-size: 0.94rem;
+      margin-top: 0.15rem;
+    }
+  </style>
+</head>
+<body>
+  <p class="back"><a href="../index.html">← Home</a></p>
+
+  <h1>Side Projects</h1>
+  <p class="intro">
+    Small builds, experiments, and personal projects I want to keep around.
+  </p>
+
+  <div class="category">
+    <details open>
+      <summary>Experiments & Builds</summary>
+      <div class="category-body">
+        <p class="category-desc">
+          Small personal projects, prototypes, and half-finished things worth keeping.
+        </p>
+
+        <div class="project-item">
+          <a class="project-title" href="#">
+            Example project title
+          </a>
+          <div class="project-desc">
+            Short description of what it is, why I made it, and what came out of it.
+          </div>
+        </div>
+      </div>
+    </details>
+  </div>
+</body>
+</html>
