@@ -5,6 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Camera Calibration: Matrices, QR Decomposition, and Gram-Schmidt</title>
   <link href="https://fonts.googleapis.com/css2?family=Alef:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      renderMathInElement(document.body, {
+        delimiters: [
+          {left: "$$", right: "$$", display: true},
+          {left: "$", right: "$", display: false}
+        ],
+        throwOnError: false
+      });
+    });
+  </script>
   <style>
     :root {
       --bg: #f7f7f5;
@@ -116,8 +130,8 @@
       padding: 0.9rem 1rem;
       margin: 0.9rem 0;
       overflow-x: auto;
-      font-family: "Times New Roman", Times, serif;
-      font-size: 1.02rem;
+      /* font-family: "Times New Roman", Times, serif; */
+      /* font-size: 1.02rem; */
     }
 
     .note-box {
@@ -140,7 +154,7 @@
     </div>
 
     <article class="article">
-      <h1>Camera Calibration: matrices, QR decomposition, and Gram-Schmidt</h1>
+      <h1>Camera Calibration: QR decomposition, and Gram-Schmidt</h1>
       <div class="meta">Apr 2026 · Concept notes · Computer Vision</div>
 
       <div class="summary-box">
@@ -164,14 +178,14 @@
 
       <h2>2. Core mapping: from 3D point to image pixel</h2>
       <p>
-        In homogeneous coordinates, a 3D point <code>X = [X, Y, Z, 1]^T</code> is mapped to an image point
-        <code>x = [u, v, 1]^T</code> by a projection matrix <code>P</code>:
+        In homogeneous coordinates, a 3D point <code>$$X = [X, Y, Z, 1]^T$$</code> is mapped to an image point
+        <code>$$x = [u, v, 1]^T$$</code> by a projection matrix <code>P</code>:
       </p>
-      <div class="math">x ~ P X</div>
+      <div class="math">$$x \sim P X$$</div>
       <p>
         where <code>~</code> means equality up to scale. The standard form is
       </p>
-      <div class="math">P = K [R | t]</div>
+      <div class="math">$$P = K [R | t]$$</div>
       <p>
         This equation is the spine of camera calibration.
       </p>
@@ -184,12 +198,14 @@
         A common form is
       </p>
       <div class="math">
+      $$
         K =
-        [
-        [f_x, s, c_x],
-        [0,   f_y, c_y],
-        [0,   0,   1]
-        ]
+        \begin{bmatrix}
+        f_x & s & c_x \\
+        0 & f_y & c_y \\
+        0 & 0 & 1
+        \end{bmatrix}
+      $$
       </div>
       <ul>
         <li><code>f_x, f_y</code>: focal length measured in pixel units along each image axis,</li>
@@ -206,7 +222,7 @@
         <code>R</code> tells you how the world coordinate axes are oriented relative to the camera.
         It is orthonormal, so its columns are mutually perpendicular unit vectors.
       </p>
-      <div class="math">R^T R = I,   det(R) = 1</div>
+      <div class="math">$$R^T R = I,   det(R) = 1$$</div>
 
       <h3>3.3 Translation vector <code>t</code></h3>
       <p>
@@ -224,7 +240,7 @@
         The canonical camera strips away real camera details and keeps only the ideal projective mapping.
         The canonical projection matrix is often written as
       </p>
-      <div class="math">P_c = [I | 0]</div>
+      <div class="math">$$P_c = [I | 0]$$</div>
       <p>
         This means the camera is placed at the origin, aligned with the coordinate axes,
         with no separate intrinsic scaling yet.
@@ -239,21 +255,23 @@
         Suppose a 3D point in the camera frame is <code>(X_c, Y_c, Z_c)</code>.
         Under the ideal pinhole model, normalized image coordinates are
       </p>
-      <div class="math">x_n = X_c / Z_c,   y_n = Y_c / Z_c</div>
+      <div class="math">$$x_n = \frac{X_c}{Z_c}, \quad y_n = \frac{Y_c}{Z_c}$$</div>
       <p>
         Then the intrinsic matrix turns these into pixels:
       </p>
-      <div class="math">u = f_x x_n + c_x,   v = f_y y_n + c_y</div>
+      <div class="math">$$u = f_x x_n + c_x, \quad v = f_y y_n + c_y$$</div>
       <p>
         Example: if <code>f_x = f_y = 800</code>, <code>c_x = 320</code>, <code>c_y = 240</code>,
         and a point in camera coordinates is <code>(1, 2, 4)</code>, then
       </p>
       <div class="math">
+        $$
         x_n = 1/4 = 0.25,   y_n = 2/4 = 0.5
         <br>
         u = 800(0.25) + 320 = 520
         <br>
         v = 800(0.5) + 240 = 640
+        $$
       </div>
       <p>
         So the image point is approximately <code>(520, 640)</code>.
@@ -264,7 +282,7 @@
         Once you estimate a camera matrix <code>P</code>, the left 3x3 block contains the mixed effect of intrinsics and rotation.
         Call that block <code>M</code>:
       </p>
-      <div class="math">P = [M | p_4],   with   M = K R</div>
+      <div class="math">$$P = [M | p_4]$$,   with   M = K R</div>
       <p>
         The problem is that <code>M</code> mixes two different structures:
       </p>
@@ -314,11 +332,13 @@
         Suppose we start with vectors <code>a_1, a_2</code>. Gram-Schmidt does:
       </p>
       <div class="math">
+        $$
         q_1 = a_1 / ||a_1||
         <br>
         u_2 = a_2 - (q_1^T a_2) q_1
         <br>
         q_2 = u_2 / ||u_2||
+        $$
       </div>
       <p>
         So the second vector is cleaned by subtracting the part that lies along the first.
@@ -329,27 +349,29 @@
       <p>
         Let
       </p>
-      <div class="math">a_1 = [1, 1]^T,   a_2 = [1, 0]^T</div>
+      <div class="math">$$a_1 = [1, 1]^T, \quad   a_2 = [1, 0]^T$$</div>
       <p>
         First,
       </p>
-      <div class="math">q_1 = (1 / sqrt(2)) [1, 1]^T</div>
+      <div class="math">$$q_1 = (1 / sqrt(2)) [1, 1]^T$$</div>
       <p>
         Project <code>a_2</code> onto <code>q_1</code>:
       </p>
       <div class="math">
+        $$
         q_1^T a_2 = 1 / sqrt(2)
         <br>
         (q_1^T a_2) q_1 = [1/2, 1/2]^T
+        $$
       </div>
       <p>
         Remove that component:
       </p>
-      <div class="math">u_2 = [1, 0]^T - [1/2, 1/2]^T = [1/2, -1/2]^T</div>
+      <div class="math">$$u_2 = [1, 0]^T - [\frac{1}{2}, \frac{1}{2}]^T = [\frac{1}{2}, -\frac{1}{2}]^T$$</div>
       <p>
         Normalize:
       </p>
-      <div class="math">q_2 = (1 / sqrt(2)) [1, -1]^T</div>
+      <div class="math">$$q_2 = (1 / sqrt(2)) [1, -1]^T$$</div>
       <p>
         Now <code>q_1</code> and <code>q_2</code> are orthonormal.
       </p>
