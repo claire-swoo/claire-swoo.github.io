@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Camera Calibration: Matrices, QR Decomposition, and Gram-Schmidt</title>
+  <link href="https://fonts.googleapis.com/css2?family=Alef:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f7f7f5;
+      --surface: #ffffff;
+      --text: #171717;
+      --muted: #666666;
+      --border: #dddddd;
+      --accent: #1f4fd1;
+      --max-width: 900px;
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Alef', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.8;
+    }
+
+    .container {
+      width: min(var(--max-width), calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 2rem 0 4rem;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .back {
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+
+    .article {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+    }
+
+    h1 {
+      margin: 0 0 0.5rem;
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+      line-height: 1.15;
+    }
+
+    .meta {
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    .summary-box {
+      background: #f8f8f8;
+      border: 1px solid #e7e7e7;
+      border-radius: 14px;
+      padding: 1rem 1.1rem;
+      margin: 1.2rem 0 1.8rem;
+    }
+
+    h2 {
+      margin-top: 2rem;
+      margin-bottom: 0.6rem;
+      font-size: 1.2rem;
+      line-height: 1.3;
+    }
+
+    h3 {
+      margin-top: 1.3rem;
+      margin-bottom: 0.35rem;
+      font-size: 1.02rem;
+      line-height: 1.3;
+    }
+
+    p {
+      margin: 0.7rem 0;
+    }
+
+    ul {
+      padding-left: 1.2rem;
+    }
+
+    li {
+      margin: 0.35rem 0;
+    }
+
+    code {
+      background: #f1f1f1;
+      border: 1px solid #e2e2e2;
+      padding: 0.1rem 0.35rem;
+      border-radius: 6px;
+      font-size: 0.95em;
+    }
+
+    .math {
+      display: block;
+      background: #fbfbfb;
+      border: 1px solid #ececec;
+      border-radius: 12px;
+      padding: 0.9rem 1rem;
+      margin: 0.9rem 0;
+      overflow-x: auto;
+      font-family: "Times New Roman", Times, serif;
+      font-size: 1.02rem;
+    }
+
+    .note-box {
+      border-left: 4px solid var(--accent);
+      background: #f8fbff;
+      padding: 0.9rem 1rem;
+      border-radius: 0 12px 12px 0;
+      margin: 1rem 0;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="back">
+      <a href="../index.html">Home</a> / <a href="index.html">Computer Vision</a>
+    </div>
+
+    <article class="article">
+      <h1>Camera Calibration: matrices, QR decomposition, and Gram-Schmidt</h1>
+      <div class="meta">Apr 2026 · Concept notes · Computer Vision</div>
+
+      <div class="summary-box">
+        <strong>Core question.</strong><br>
+        In camera calibration, what do the main matrices mean, and why do decompositions such as QR or Gram-Schmidt appear when we want to recover intrinsic parameters?
+      </div>
+
+      <h2>1. Big picture</h2>
+      <p>
+        Camera calibration is about recovering the mapping from 3D world points to 2D image pixels.
+        The point is not just to fit a matrix mechanically. The point is to separate three different things:
+      </p>
+      <ul>
+        <li>the camera <strong>internal geometry</strong> such as focal length and principal point,</li>
+        <li>the camera <strong>pose</strong> relative to the world,</li>
+        <li>and the final <strong>projection</strong> from 3D to image coordinates.</li>
+      </ul>
+      <p>
+        If those are mixed together, the matrix works numerically but tells you very little physically.
+      </p>
+
+      <h2>2. Core mapping: from 3D point to image pixel</h2>
+      <p>
+        In homogeneous coordinates, a 3D point <code>X = [X, Y, Z, 1]^T</code> is mapped to an image point
+        <code>x = [u, v, 1]^T</code> by a projection matrix <code>P</code>:
+      </p>
+      <div class="math">x ~ P X</div>
+      <p>
+        where <code>~</code> means equality up to scale. The standard form is
+      </p>
+      <div class="math">P = K [R | t]</div>
+      <p>
+        This equation is the spine of camera calibration.
+      </p>
+
+      <h2>3. What each matrix means</h2>
+
+      <h3>3.1 Intrinsic matrix <code>K</code></h3>
+      <p>
+        <code>K</code> describes how the camera itself converts coordinates in the camera frame into pixel coordinates.
+        A common form is
+      </p>
+      <div class="math">
+        K =
+        [
+        [f_x, s, c_x],
+        [0,   f_y, c_y],
+        [0,   0,   1]
+        ]
+      </div>
+      <ul>
+        <li><code>f_x, f_y</code>: focal length measured in pixel units along each image axis,</li>
+        <li><code>c_x, c_y</code>: principal point, usually near the image center,</li>
+        <li><code>s</code>: skew, often zero in modern cameras.</li>
+      </ul>
+      <p>
+        The focal length here is not simply “millimeters” unless you are working before pixel scaling.
+        In the calibration matrix, it is usually expressed in pixel units.
+      </p>
+
+      <h3>3.2 Rotation matrix <code>R</code></h3>
+      <p>
+        <code>R</code> tells you how the world coordinate axes are oriented relative to the camera.
+        It is orthonormal, so its columns are mutually perpendicular unit vectors.
+      </p>
+      <div class="math">R^T R = I,   det(R) = 1</div>
+
+      <h3>3.3 Translation vector <code>t</code></h3>
+      <p>
+        <code>t</code> tells you where the world origin is located relative to the camera frame,
+        after the rotation convention is fixed.
+      </p>
+
+      <h3>3.4 Extrinsic matrix <code>[R | t]</code></h3>
+      <p>
+        This combines rotation and translation, so it maps world coordinates into the camera coordinate frame.
+      </p>
+
+      <h2>4. Canonical camera and why it matters</h2>
+      <p>
+        The canonical camera strips away real camera details and keeps only the ideal projective mapping.
+        The canonical projection matrix is often written as
+      </p>
+      <div class="math">P_c = [I | 0]</div>
+      <p>
+        This means the camera is placed at the origin, aligned with the coordinate axes,
+        with no separate intrinsic scaling yet.
+      </p>
+      <p>
+        It is useful because it shows what projection fundamentally is before adding calibration and pose.
+        Real cameras are then obtained by applying extrinsics and intrinsics on top of this basic structure.
+      </p>
+
+      <h2>5. Simple projection example</h2>
+      <p>
+        Suppose a 3D point in the camera frame is <code>(X_c, Y_c, Z_c)</code>.
+        Under the ideal pinhole model, normalized image coordinates are
+      </p>
+      <div class="math">x_n = X_c / Z_c,   y_n = Y_c / Z_c</div>
+      <p>
+        Then the intrinsic matrix turns these into pixels:
+      </p>
+      <div class="math">u = f_x x_n + c_x,   v = f_y y_n + c_y</div>
+      <p>
+        Example: if <code>f_x = f_y = 800</code>, <code>c_x = 320</code>, <code>c_y = 240</code>,
+        and a point in camera coordinates is <code>(1, 2, 4)</code>, then
+      </p>
+      <div class="math">
+        x_n = 1/4 = 0.25,   y_n = 2/4 = 0.5
+        <br>
+        u = 800(0.25) + 320 = 520
+        <br>
+        v = 800(0.5) + 240 = 640
+      </div>
+      <p>
+        So the image point is approximately <code>(520, 640)</code>.
+      </p>
+
+      <h2>6. Where QR decomposition enters</h2>
+      <p>
+        Once you estimate a camera matrix <code>P</code>, the left 3x3 block contains the mixed effect of intrinsics and rotation.
+        Call that block <code>M</code>:
+      </p>
+      <div class="math">P = [M | p_4],   with   M = K R</div>
+      <p>
+        The problem is that <code>M</code> mixes two different structures:
+      </p>
+      <ul>
+        <li><code>K</code> should be upper triangular,</li>
+        <li><code>R</code> should be orthonormal.</li>
+      </ul>
+      <p>
+        Decomposition is how we separate those two roles.
+      </p>
+
+      <h3>6.1 Why QR fits the structure</h3>
+      <p>
+        QR decomposition writes a matrix as
+      </p>
+      <div class="math">A = Q R</div>
+      <p>
+        where <code>Q</code> is orthonormal and <code>R</code> is upper triangular.
+        That looks close to what we want, but the order is reversed relative to <code>M = K R</code>.
+      </p>
+      <p>
+        This is why calibration texts often use <strong>RQ decomposition</strong> in practice,
+        because it produces an upper-triangular matrix on the left and an orthonormal matrix on the right:
+      </p>
+      <div class="math">M = K R</div>
+      <p>
+        So the clean conceptual statement is this:
+      </p>
+      <div class="note-box">
+        If you want <code>intrinsics × rotation</code>, plain QR has the wrong order, so people usually use RQ,
+        or transform the matrix so that QR can still be applied indirectly.
+      </div>
+      <p>
+        If a lecture or derivation mentions QR, the real point is not the label. The real point is
+        <strong>separating an orthonormal factor from an upper-triangular factor</strong>.
+      </p>
+
+      <h2>7. Where Gram-Schmidt enters</h2>
+      <p>
+        Gram-Schmidt is the classical geometric procedure that turns a set of linearly independent vectors
+        into an orthonormal basis. It is deeply connected to QR because applying Gram-Schmidt to the columns of a matrix
+        constructs the orthonormal matrix in QR decomposition.
+      </p>
+
+      <h3>7.1 Basic idea</h3>
+      <p>
+        Suppose we start with vectors <code>a_1, a_2</code>. Gram-Schmidt does:
+      </p>
+      <div class="math">
+        q_1 = a_1 / ||a_1||
+        <br>
+        u_2 = a_2 - (q_1^T a_2) q_1
+        <br>
+        q_2 = u_2 / ||u_2||
+      </div>
+      <p>
+        So the second vector is cleaned by subtracting the part that lies along the first.
+        Repeating this process produces orthonormal directions.
+      </p>
+
+      <h3>7.2 Tiny numerical example</h3>
+      <p>
+        Let
+      </p>
+      <div class="math">a_1 = [1, 1]^T,   a_2 = [1, 0]^T</div>
+      <p>
+        First,
+      </p>
+      <div class="math">q_1 = (1 / sqrt(2)) [1, 1]^T</div>
+      <p>
+        Project <code>a_2</code> onto <code>q_1</code>:
+      </p>
+      <div class="math">
+        q_1^T a_2 = 1 / sqrt(2)
+        <br>
+        (q_1^T a_2) q_1 = [1/2, 1/2]^T
+      </div>
+      <p>
+        Remove that component:
+      </p>
+      <div class="math">u_2 = [1, 0]^T - [1/2, 1/2]^T = [1/2, -1/2]^T</div>
+      <p>
+        Normalize:
+      </p>
+      <div class="math">q_2 = (1 / sqrt(2)) [1, -1]^T</div>
+      <p>
+        Now <code>q_1</code> and <code>q_2</code> are orthonormal.
+      </p>
+
+      <h2>8. Why this matters in calibration, not just algebra</h2>
+      <p>
+        The decomposition is not there because linear algebra books like factorization.
+        It is there because the camera matrix contains different physical meanings that obey different structural constraints.
+      </p>
+      <ul>
+        <li><code>K</code> must look like a calibration matrix, not an arbitrary matrix.</li>
+        <li><code>R</code> must be a true rotation, not a distorted transform.</li>
+      </ul>
+      <p>
+        Decomposition is what forces the recovered parameters back into geometrically meaningful form.
+      </p>
+
+      <h2>9. Common confusion points</h2>
+      <ul>
+        <li><strong>Focal length units:</strong> in <code>K</code>, focal length is usually in pixel units.</li>
+        <li><strong>QR versus RQ:</strong> for calibration, the desired factor order is usually upper-triangular first, orthonormal second.</li>
+        <li><strong>Homogeneous coordinates:</strong> equal up to scale means the same image point can be represented by many scalar multiples.</li>
+        <li><strong>Projection matrix meaning:</strong> fitting <code>P</code> is only the start. Interpreting it requires factorization into physically meaningful parts.</li>
+      </ul>
+
+      <h2>10. Main takeaway</h2>
+      <p>
+        The camera calibration pipeline is easiest to understand when the roles are kept separate.
+        The projection matrix <code>P</code> maps 3D to 2D, the intrinsic matrix <code>K</code> captures the camera's internal geometry,
+        and <code>[R|t]</code> captures pose. QR, RQ, and Gram-Schmidt are not side tricks. They are the tools that let us separate these roles
+        while preserving the geometry each factor is supposed to represent.
+      </p>
+
+      <h2>11. Open questions to revisit</h2>
+      <ul>
+        <li>How does the derivation change when lens distortion is included explicitly?</li>
+        <li>Why do some derivations enforce sign conventions on the diagonal of <code>K</code> after decomposition?</li>
+        <li>How is this matrix factorization connected to Zhang-style multi-view calibration in practice?</li>
+      </ul>
+
+      <p class="muted">
+        This note is meant as a compact concept review, not a full calibration derivation.
+        The goal is to keep the geometry, matrix roles, and decomposition intuition clear enough to reuse later.
+      </p>
+    </article>
+  </div>
+</body>
+</html>
