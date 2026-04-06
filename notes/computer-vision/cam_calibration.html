@@ -178,8 +178,8 @@
 
       <h2>2. Core mapping: from 3D point to image pixel</h2>
       <p>
-        In homogeneous coordinates, a 3D point <code>$$X = [X, Y, Z, 1]^T$$</code> is mapped to an image point
-        <code>$$x = [u, v, 1]^T$$</code> by a projection matrix <code>P</code>:
+        In homogeneous coordinates, a 3D point <code>X = [X, Y, Z, 1]^T</code> is mapped to an image point
+        <code>x = [u, v, 1]^T</code> by a projection matrix <code>P</code>:
       </p>
       <div class="math">$$x \sim P X$$</div>
       <p>
@@ -264,9 +264,8 @@
         Example: if <code>f_x = f_y = 800</code>, <code>c_x = 320</code>, <code>c_y = 240</code>,
         and a point in camera coordinates is <code>(1, 2, 4)</code>, then
       </p>
-      <div class="math">
-        $$
-        x_n = 1/4 = 0.25,   y_n = 2/4 = 0.5
+      <div class="math">$$
+        x_n = \frac{1}{4} = 0.25,   y_n = \fac{2}{4} = 0.5
         <br>
         u = 800(0.25) + 320 = 520
         <br>
@@ -282,7 +281,7 @@
         Once you estimate a camera matrix <code>P</code>, the left 3x3 block contains the mixed effect of intrinsics and rotation.
         Call that block <code>M</code>:
       </p>
-      <div class="math">$$P = [M | p_4]$$,   with   M = K R</div>
+      <div class="math">$$P = [M | p_4], \quad   with   M = K R$$</div>
       <p>
         The problem is that <code>M</code> mixes two different structures:
       </p>
@@ -298,7 +297,7 @@
       <p>
         QR decomposition writes a matrix as
       </p>
-      <div class="math">A = Q R</div>
+      <div class="math">$$A = Q R$$</div>
       <p>
         where <code>Q</code> is orthonormal and <code>R</code> is upper triangular.
         That looks close to what we want, but the order is reversed relative to <code>M = K R</code>.
@@ -307,7 +306,7 @@
         This is why calibration texts often use <strong>RQ decomposition</strong> in practice,
         because it produces an upper-triangular matrix on the left and an orthonormal matrix on the right:
       </p>
-      <div class="math">M = K R</div>
+      <div class="math">$$M = K R$$</div>
       <p>
         So the clean conceptual statement is this:
       </p>
@@ -331,8 +330,7 @@
       <p>
         Suppose we start with vectors <code>a_1, a_2</code>. Gram-Schmidt does:
       </p>
-      <div class="math">
-        $$
+      <div class="math">$$
         q_1 = a_1 / ||a_1||
         <br>
         u_2 = a_2 - (q_1^T a_2) q_1
@@ -353,21 +351,20 @@
       <p>
         First,
       </p>
-      <div class="math">$$q_1 = (1 / sqrt(2)) [1, 1]^T$$</div>
+      <div class="math">$$q_1 = (1 / \sqrt(2)) [1, 1]^T$$</div>
       <p>
         Project <code>a_2</code> onto <code>q_1</code>:
       </p>
-      <div class="math">
-        $$
-        q_1^T a_2 = 1 / sqrt(2)
+      <div class="math">$$
+        q_1^T a_2 = \frac{1}{\sqrt(2)}
         <br>
-        (q_1^T a_2) q_1 = [1/2, 1/2]^T
+        (q_1^T a_2) q_1 = [\frac{1}{2}, \frac{1}{2}]^T
         $$
       </div>
       <p>
         Remove that component:
       </p>
-      <div class="math">$$u_2 = [1, 0]^T - [\frac{1}{2}, \frac{1}{2}]^T = [\frac{1}{2}, -\frac{1}{2}]^T$$</div>
+      <div class="math">$$u_2 = [1, 0]^T - \[\frac{1}{2}, \frac{1}{2}\]^T = \left[\frac{1}{2}, -\frac{1}{2}\right]^T$$</div>
       <p>
         Normalize:
       </p>
