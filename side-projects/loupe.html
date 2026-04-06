@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Alef:wght@400;700&display=swap" rel="stylesheet">
+  <title>Loupe — Chrome Extension</title>
+  <style>
+    :root {
+      --bg: #f7f7f5;
+      --surface: #ffffff;
+      --text: #171717;
+      --muted: #666666;
+      --border: #dde2ea;
+      --accent: #61becd;
+      --accent-2: #101E5C;
+      --radius: 16px;
+      --max-width: 900px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Alef', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: var(--max-width);
+      margin: 48px auto;
+      padding: 0 20px 60px;
+      line-height: 1.7;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .back {
+      margin-bottom: 1.2rem;
+      font-size: 0.95rem;
+    }
+    .back a { color: #2b57d9; }
+    .back a:hover { text-decoration: underline; }
+
+    /* ── Hero ── */
+    .hero {
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-eyebrow {
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      margin: 0 0 0.4rem;
+      font-size: clamp(2rem, 5vw, 3rem);
+      line-height: 1.06;
+      letter-spacing: -0.03em;
+      color: var(--accent-2);
+    }
+
+    .tagline {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 58ch;
+      margin: 0.4rem 0 1.4rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.55rem 1.15rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.82; }
+
+    .btn-primary {
+      background: var(--accent-2);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--accent-2);
+      border: 1.5px solid var(--border);
+    }
+
+    .btn[disabled], .btn.placeholder {
+      opacity: 0.4;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    /* ── Sections ── */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      margin-bottom: 0.9rem;
+      overflow: hidden;
+    }
+
+    details { border-radius: 14px; }
+
+    summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 1rem 1.1rem;
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--accent-2);
+      text-decoration: underline;
+      text-underline-offset: 0.15em;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+
+    summary::before {
+      content: "▸";
+      display: inline-block;
+      margin-right: 0.55rem;
+      color: var(--muted);
+      transition: transform 0.15s ease;
+    }
+
+    details[open] summary::before { transform: rotate(90deg); }
+
+    .section-body {
+      padding: 0 1.2rem 1.2rem;
+      border-top: 1px solid #edf0f4;
+    }
+
+    .section-desc {
+      margin: 0.8rem 0 0.4rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    /* ── Feature list ── */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 0.75rem;
+      margin-top: 0.9rem;
+    }
+
+    .feature-card {
+      background: #f7f9fc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+    }
+
+    .feature-card .fc-label {
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: var(--accent-2);
+      margin-bottom: 0.2rem;
+    }
+
+    .feature-card .fc-desc {
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    /* ── Meta row ── */
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.5rem;
+      margin-top: 0.9rem;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .meta-row span strong {
+      color: var(--text);
+    }
+
+    /* ── Placeholder text ── */
+    .placeholder-text {
+      color: #bbb;
+      font-style: italic;
+      font-size: 0.9rem;
+    }
+
+    /* ── Screenshots row ── */
+    .screenshots {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.75rem;
+      margin-top: 0.9rem;
+    }
+
+    .screenshot-slot {
+      background: #f0f2f6;
+      border-radius: 8px;
+      aspect-ratio: 4/3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #bbb;
+      font-size: 0.82rem;
+      border: 1.5px dashed var(--border);
+    }
+
+    .screenshot-slot img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 8px;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <p class="back"><a href="index.html">← Side Projects</a></p>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-eyebrow">Chrome Extension</div>
+    <h1>Loupe</h1>
+    <p class="tagline">
+      AI-powered design and clarity critique for any webpage —
+      judges pages on their own terms and returns structured, actionable feedback.
+    </p>
+    <div class="hero-actions">
+      <!-- Replace href once published -->
+      <a class="btn btn-primary placeholder" href="#" title="Coming soon">
+        Add to Chrome
+      </a>
+      <!-- Replace href with your GitHub repo -->
+      <a class="btn btn-secondary placeholder" href="#" title="Link coming soon">
+        GitHub →
+      </a>
+    </div>
+  </div>
+
+  <!-- What it does -->
+  <div class="section">
+    <details open>
+      <summary>What it does</summary>
+      <div class="section-body">
+        <p class="section-desc">
+          Loupe opens as a side panel and analyzes the current page — 
+          detecting its type (portfolio, STEM paper, landing page, etc.)
+          and evaluating it on criteria appropriate to that context.
+          Each issue gets a severity label and a before / after suggestion.
+        </p>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="fc-label">Context-aware analysis</div>
+            <div class="fc-desc">Detects page type and switches evaluation criteria accordingly — a research portfolio isn't judged like a marketing site.</div>
+          </div>
+          <div class="feature-card">
+            <div class="fc-label">Severity badges</div>
+            <div class="fc-desc">Issues are tagged Critical / Major / Minor so you know what to fix first.</div>
+          </div>
+          <div class="feature-card">
+            <div class="fc-label">Before / after cards</div>
+            <div class="fc-desc">Every suggestion shows the current state and a concrete rewrite, not just vague advice.</div>
+          </div>
+          <div class="feature-card">
+            <div class="fc-label">Four themes</div>
+            <div class="fc-desc">Navy, Charcoal, Sky, and Paper White — switch without reloading.</div>
+          </div>
+          <div class="feature-card">
+            <div class="fc-label">Draggable panel</div>
+            <div class="fc-desc">Minimize to a strip or drag it out of the way while you edit.</div>
+          </div>
+          <div class="feature-card">
+            <div class="fc-label">arXiv HTML support</div>
+            <div class="fc-desc">Analyzes arXiv papers via their HTML rendering — PDF canvas is inaccessible by design.</div>
+          </div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- Screenshots -->
+  <div class="section">
+    <details>
+      <summary>Preview</summary>
+      <div class="section-body">
+        <p class="section-desc">Sample results, UI, and demo screenshots.</p>
+        <div class="screenshots">
+          <!-- To add a screenshot: replace the placeholder div with:
+               <img src="path/to/screenshot.png" alt="description" />
+               inside a .screenshot-slot -->
+          <div class="screenshot-slot">Side panel — analysis view</div>
+          <div class="screenshot-slot">Before / after card</div>
+          <div class="screenshot-slot">Theme switcher</div>
+          <div class="screenshot-slot">Minimized strip</div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <!-- How to install -->
+  <div class="section">
+    <details>
+      <summary>Install</summary>
+      <div class="section-body">
+        <p class="section-desc">Chrome Web Store link coming soon. To install from source in the meantime:</p>
+        <ol style="color: var(--muted); font-size: 0.95rem; padding-left: 1.3rem; margin: 0.6rem 0 0;">
+          <li>Clone or download the repo</li>
+          <li>Go to <code>chrome://extensions</code> and enable Developer Mode</li>
+          <li>Click <strong>Load unpacked</strong> and select the extension folder</li>
+          <li>Open any webpage, click the Loupe icon in the toolbar</li>
+        </ol>
+        <!-- Add your API key setup note here if needed -->
+        <p class="placeholder-text" style="margin-top: 0.8rem;">[ Add API key setup instructions here if applicable ]</p>
+      </div>
+    </details>
+  </div>
+
+  <!-- Why I built it -->
+  <div class="section">
+    <details>
+      <summary>Background</summary>
+      <div class="section-body">
+        <p class="section-desc">
+          I was building a personal site and wanted feedback that understood 
+          what the page was <em>trying</em> to do — not generic SEO tips. 
+          Existing tools either check accessibility rules mechanically or 
+          give off-target AI suggestions with no context about the page type.
+          Loupe started as a quick experiment to fix that.
+        </p>
+        <!-- Add more context, learnings, or a short write-up here -->
+        <p class="placeholder-text">[ Optional: longer write-up, lessons learned, stack notes ]</p>
+      </div>
+    </details>
+  </div>
+
+  <!-- Meta -->
+  <div class="meta-row">
+    <span><strong>Stack</strong> Chrome MV3, OpenAI API, Vanilla JS</span>
+    <span><strong>Status</strong> <!-- e.g. "In review — Chrome Web Store" --> <span class="placeholder-text">[ update status ]</span></span>
+    <span><strong>Started</strong> 2025</span>
+  </div>
+
+</body>
+</html>
