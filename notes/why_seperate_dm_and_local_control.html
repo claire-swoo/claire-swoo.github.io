@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Why separate strategic decision-making from safe local control?</title>
+  <link href="https://fonts.googleapis.com/css2?family=Alef:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f7f7f5;
+      --surface: #ffffff;
+      --text: #171717;
+      --muted: #666666;
+      --border: #dddddd;
+      --accent: #1f4fd1;
+      --max-width: 860px;
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Alef', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.8;
+    }
+
+    .container {
+      width: min(var(--max-width), calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 2rem 0 4rem;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .back {
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+
+    .article {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+    }
+
+    h1 {
+      margin: 0 0 0.5rem;
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+      line-height: 1.15;
+    }
+
+    .meta {
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    .summary-box {
+      background: #f8f8f8;
+      border: 1px solid #e7e7e7;
+      border-radius: 14px;
+      padding: 1rem 1.1rem;
+      margin: 1.2rem 0 1.8rem;
+    }
+
+    h2 {
+      margin-top: 2rem;
+      margin-bottom: 0.6rem;
+      font-size: 1.2rem;
+      line-height: 1.3;
+    }
+
+    p {
+      margin: 0.7rem 0;
+    }
+
+    ul {
+      padding-left: 1.2rem;
+    }
+
+    code {
+      background: #f1f1f1;
+      border: 1px solid #e2e2e2;
+      padding: 0.1rem 0.35rem;
+      border-radius: 6px;
+      font-size: 0.95em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="back">
+      <a href="../index.html">Home</a> / <a href="index.html">Notes</a>
+    </div>
+
+    <article class="article">
+      <h1>Why separate strategic decision-making from safe local control?</h1>
+      <div class="meta">Apr 2026 · Hierarchical control · Notes</div>
+
+      <div class="summary-box">
+        <strong>Core question.</strong><br>
+        Why does a hierarchical RL + MPC structure make sense beyond engineering convenience?
+      </div>
+
+      <h2>1. The basic tension</h2>
+      <p>
+        In robotics problems under uncertainty, one controller is often asked to do too many things at once:
+        long-horizon adaptation, local obstacle avoidance, safety handling, and real-time actuation.
+        That sounds elegant in theory, but in practice it mixes tasks with very different time scales and requirements.
+      </p>
+
+      <h2>2. Why a single-layer policy is often weak</h2>
+      <p>
+        A single policy can be expressive, but it is harder to make it simultaneously adaptive,
+        interpretable, safe, and computationally stable. High-level strategy and low-level execution
+        are not the same problem. One concerns longer-horizon choices such as route preference,
+        mode switching, or subgoal selection. The other concerns short-horizon feasibility and safety.
+      </p>
+      <p>
+        When these are collapsed into one layer, the result is often either too reactive or too brittle.
+      </p>
+
+      <h2>3. Why the separation is structural, not cosmetic</h2>
+      <p>
+        The reason to separate layers is not simply modular design. It is that the system faces
+        distinct decision roles:
+      </p>
+      <ul>
+        <li><strong>Strategic layer:</strong> selects what kind of local behavior should be pursued next.</li>
+        <li><strong>Local control layer:</strong> ensures feasible and safe motion over a short horizon.</li>
+      </ul>
+      <p>
+        This is why a combination such as RL for strategic adaptation and MPC for local safe execution
+        is attractive. The layers solve different problems, so forcing them into one mechanism can be conceptually weak.
+      </p>
+
+      <h2>4. Role of MPC in this structure</h2>
+      <p>
+        MPC is useful because it handles short-horizon optimization under constraints.
+        That makes it a strong candidate for local collision avoidance, smooth tracking,
+        and explicit safety or risk constraints. It is not meant to discover all strategic behavior.
+        It is meant to execute safely within the local horizon.
+      </p>
+
+      <h2>5. Role of RL in this structure</h2>
+      <p>
+        RL is useful when the system must learn longer-horizon adaptation from interaction:
+        which route family is better, when to avoid congested regions, when to choose conservative versus aggressive behavior,
+        or how to generate meaningful subgoals under changing conditions.
+      </p>
+      <p>
+        In earlier discussion, the key point was that RL should not directly replace safe local control.
+        It should supervise the structure at a higher level, where adaptation matters most.
+      </p>
+
+      <h2>6. Why the digital twin matters here</h2>
+      <p>
+        The digital twin should not be treated as passive visualization.
+        Its stronger role is predictive evaluation: short-horizon rollout, candidate comparison,
+        and support for high-level decision selection under uncertainty.
+      </p>
+      <p>
+        That makes the full structure more coherent:
+        strategic adaptation proposes what to do next,
+        predictive evaluation estimates consequences,
+        and MPC executes the chosen behavior safely.
+      </p>
+
+      <h2>7. Main takeaway</h2>
+      <p>
+        Separating strategic decision-making from safe local control is a response to the actual structure of the problem:
+        uncertainty, multiple time scales, safety requirements, and real-time constraints.
+        It is not just a cleaner block diagram. It is a better match between computational role and decision role.
+      </p>
+
+      <h2>8. Open questions</h2>
+      <ul>
+        <li>What should the high-level action space be: route choice, subgoal selection, or mode switching?</li>
+        <li>How should uncertainty and human workflow risk enter the strategic layer?</li>
+        <li>What part of the digital twin should be used online without making the system too slow?</li>
+      </ul>
+    </article>
+  </div>
+</body>
+</html>
